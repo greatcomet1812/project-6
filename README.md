@@ -1,72 +1,51 @@
 # UOCIS322 - Project 6 #
 Brevet time calculator with MongoDB, and a RESTful API!
 
-Read about MongoEngine and Flask-RESTful before you start: [http://docs.mongoengine.org/](http://docs.mongoengine.org/), [https://flask-restful.readthedocs.io/en/latest/](https://flask-restful.readthedocs.io/en/latest/).
+Author: Sewon Sohn\
+Contact: ssohn@uoregon.edu
 
-## Before you begin
-You *HAVE TO* copy `.env-example` into `.env` and specify your container port numbers there!
-Note that the default values (5000 and 5000) will work!
+This project calculates the open and close times for each specified checkpoints of the brevet given its distance and the starting time.
+Additionally, it stores the input data in the database when the `Submit` button is clicked as well as retrieves all the stored data and displays it when the button `Display` is clicked.
 
-*DO NOT PLACE LOCAL PORTS IN YOUR COMPOSE FILE!*
 
-## Overview
+## Docker
+Run the program with Docker Compose so that we can have multiple containers running at the same time. In this case, we want the web and database to be executing simultaneously.
+```
+docker compose up --build -d
+```
+This will let Docker Compose build anything that has not already been installed previously based on the `docker-compose.yml` file.
+The `-d` flag lets the container run in detached mode, as Mongo needs to be run the background. 
 
-You will reuse your code from Project 5, which already has two services:
+To stop the docker, run the command
+```
+docker compose down
+```
 
-* Brevets
-	* The entire web service
-* MongoDB
+To check if there are any running containers, run the command
+```
+docker compose ls
+```
 
-For this project, you will re-organize `Brevets` into two separate services:
+## Application 
+On the web page showing ACP Brevet Times, Select the brevet distance and set the beginning date and time.\
+Then in the table below, put in checkpoints from 0 to the brevet distance (or up to 20% beyond).\
+These users inputs are taken by AJAX in the template and passed into a function in the python Flask (`flask_brevets.py`),
+which passes the data as parameters into functions called from `acp_times.py`.\
+The functions `open_time` and `close_time` are called, which calculate the open and close times of the checkpoint specified as a parameter.\
+The functions each return an arrow object of the open/close time, which is converted to JSON data that is sent back to the AJAX. 
+The times are displayed in the designated format in the table.\
+When the user increments or decrements the control distance, the input values will change, hence the times displayed will as well.
 
-* Web (Front-end)
-	* Time calculator (basically everything you had in project 4)
-* API (Back-end)
-	* A RESTful service to expose/store structured data in MongoDB.
+In the template file (`calc.html`), when the button "Submit" is clicked, AJAX sends all of the data as arguments to flask. All the data is automatically cleared from the page.
+Then, flask takes the data and calls the function `brevet_insert` (from the pymongo file) to store them in the database. 
+When the button `Display` is clicked, the server brings back all the data that have been saved. This is done by calling the function `brevet_fetch` in flask, which fetches all of the data from the database, jsonifies them, and sends them back to the template. 
+These data then populate the table in the corresponing fields. 
 
-## Tasks
+## API
+The directory `database` contains `models.py` which defines data models that are used to interact with the MongoDB database.
+The directory `resources` contiains `brevet.py` and `brevets.py` which define Flask-RESTful resources for the Brevet document model.
+`brevet.py` contains HTTP methods to handle GET, PUT, and DELETE requests for a specific Brevet document identified by its id.
+`brevets.py` handles HTTP GET and POST requests related to a collection of Brevet documents in the database.
+Finally, the file `flask_api.py` defines a Flask app that provides a RESTful API for managing Brevet documents in the database.
+It connects to the MongoDB database using MongoEngine, binds resources to paths, and starts the Flask app with the specified port number and host address.
 
-* Implement a RESTful API in `api/`:
-	* Write a data schema using MongoEngine for Checkpoints and Brevets:
-		* `Checkpoint`:
-			* `distance`: float, required, (checkpoint distance in kilometers), 
-			* `location`: string, optional, (checkpoint location name), 
-			* `open_time`: datetime, required, (checkpoint opening time), 
-			* `close_time`: datetime, required, (checkpoint closing time).
-		* `Brevet`:
-			* `length`: float, required, (brevet distance in kilometers),
-			* `start_time`: datetime, required, (brevet start time),
-			* `checkpoints`: list of `Checkpoint`s, required, (checkpoints).
-	* Using the schema, build a RESTful API with the resource `/brevets/`:
-		* GET `http://API:PORT/api/brevets` should display all brevets stored in the database.
-		* GET `http://API:PORT/api/brevet/ID` should display brevet with id `ID`.
-		* POST `http://API:PORT/api/brevets` should insert brevet object in request into the database.
-		* DELETE `http://API:PORT/api/brevet/ID` should delete brevet with id `ID`.
-		* PUT `http://API:PORT/api/brevet/ID` should update brevet with id `ID` with object in request.
-
-* Copy over `brevets/` from your completed project 5.
-	* Replace every database related code in `brevets/` with calls to the new API.
-		* Remember: AutoGrader will ensure there is NO CONNECTION between `brevets` and `db` services. `brevets` should only operate through `api` and still function the way it did in project 5.
-		* Hint: Submit should send a POST request to the API to insert, Display should send a GET request, and display the last entry.
-	* Remove `config.py` and adjust `flask_brevets.py` to use the `PORT` and `DEBUG` values specified in env variables (see `docker-compose.yml`).
-
-* Update README.md with API documentation added.
-
-As always you'll turn in your `credentials.ini` through Canvas.
-
-## Grading Rubric
-
-* If your code works as expected: 100 points. This includes:
-    * API routes as outlined above function exactly the way expected,
-    * Web application works as expected in project 5,
-    * README is updated with the necessary details.
-
-* If the front-end service does not work, 20 points will be docked.
-
-* For each of the 5 requests that do not work, 15 points will be docked.
-
-* If none of the above work, 5 points will be assigned assuming project builds and runs, and `README` is updated. Otherwise, 0 will be assigned.
-
-## Authors
-
-Michal Young, Ram Durairajan. Updated by Ali Hassani.
