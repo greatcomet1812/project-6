@@ -42,10 +42,10 @@ When the button `Display` is clicked, the server brings back all the data that h
 These data then populate the table in the corresponing fields. 
 
 ## API
-The directory `database` contains `models.py` which defines data models that are used to interact with the MongoDB database.
-The directory `resources` contiains `brevet.py` and `brevets.py` which define Flask-RESTful resources for the Brevet document model.
-`brevet.py` contains HTTP methods to handle GET, PUT, and DELETE requests for a specific Brevet document identified by its id.
-`brevets.py` handles HTTP GET and POST requests related to a collection of Brevet documents in the database.
-Finally, the file `flask_api.py` defines a Flask app that provides a RESTful API for managing Brevet documents in the database.
+`models.py` in the directory `database` defines data models that are used to interact with the MongoDB database.\
+`brevet.py` and `brevets.py` in the directory `resources` define Flask-RESTful resources for the Brevet document model.\
+`brevet.py` contains HTTP methods to handle GET, PUT, and DELETE requests for a specific Brevet document identified by its id.\
+`brevets.py` handles HTTP GET and POST requests related to a collection of Brevet documents in the database.\
+Finally, `flask_api.py` defines a Flask app that provides a RESTful API for managing Brevet documents in the database.\
 It connects to the MongoDB database using MongoEngine, binds resources to paths, and starts the Flask app with the specified port number and host address.
 
